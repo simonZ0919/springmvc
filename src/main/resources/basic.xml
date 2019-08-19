@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context" 
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"  
+	xmlns:jee="http://www.springframework.org/schema/jee" 
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop" 
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
+		http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-3.2.xsd
+		http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.2.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
+		http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa-1.3.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.2.xsd">
+	<!-- create class without parameter, id:unique
+		 scopee: singleton(default), prototype:multiple, no destroy 
+		 initdestroy-method: init/destroy object
+		 lazy-init="false"(default), create object after container start-->
+	<bean id="sc1" class="basic.SimpleBean" scope="singleton"
+	init-method="init" destroy-method="destroy"
+	lazy-init="true"/>
+	<!--factory method: static method of class, return object-->
+	<bean id="cal" class="java.util.Calendar" factory-method="getInstance"/>
+	<!--instance factory, return: cal.getTime()  -->
+	<bean id="date" factory-bean="cal" factory-method="getTime"/>
+	
+	<bean id="a1" class="ioc.A">
+		<!-- container call setB(b1)-->
+		<property name="B" ref="b1"/>
+		<!-- constructor injection, index of parameter -->
+		<constructor-arg index="0" ref="c1"/>		
+		
+		<!--c1.number: c1.getNumber(), get list[index]  -->
+		<property name="userID" value="#{c1.number}"/>
+		<property name="hobby" value="#{b1.interest[1]}"/>
+		<!-- map/property.key/[key] -->
+		<property name="pwd" value="#{c1.users['root']}"/>
+		<property name="username" value="#{config.username}"/>
+	</bean>
+	
+	<!--autowire: auto inject object, byName/byType  -->
+	<bean id="b1" class="ioc.B" autowire="byName">
+		<!-- inject list -->
+		<property name="interest">
+			<list>
+				<value>music</value>
+				<value>sports</value>
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="c1" class="ioc.C">
+		<!-- set int -->
+		<property name="number" value="1000"/>
+		<!--inject map object -->
+		<property name="users" ref="userBean"/>
+	</bean>
+	
+	<!--create map object, can be reused  -->
+	<util:map id="userBean">
+		<entry key="root" value="sysadm"/>
+		<entry key="user" value="afd"/>
+	</util:map>
+	
+	<!--read *.properties file, classpath:current path  -->
+	<util:properties id="config" location="classpath:config.properties"> 
+	</util:properties>
+	
+	<!--scan component in package  -->
+	<context:component-scan base-package="annotation"></context:component-scan>
+</beans>
+
+
+
